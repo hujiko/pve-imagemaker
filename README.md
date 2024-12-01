@@ -7,6 +7,7 @@ It does that by spawning a VirtualBox, using Vagrant to control it and debootstr
 ## Using it
 
 Check `_run.sh` to see how it can be used. This example will build an Ubuntu Noble VM.
+`make.sh` makes a new VM image, `customize.sh` is where stuff can be adjusted to customize your VM.
 
 ## Other Distributions
 

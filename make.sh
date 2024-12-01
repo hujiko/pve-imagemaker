@@ -23,11 +23,14 @@ dev=$(ls /dev/disk/by-path/ | grep scsi-0:0:2:0$ | xargs -i readlink /dev/disk/b
 
 echo /dev/$dev
 
-# Partition the new disk. We create only one partition here.
+# Partition the new disk. It seems like, in order to BIOS boot from a GPT Partition table
+# We need a 1M Partition at the beginning of the disk.
 echo "
 mklabel gpt
-mkpart primary 1 100%
-name 1 ROOT
+mkpart primary 1 2
+mkpart primary 2 100%
+name 2 GRUB
+name 2 ROOT
 set 1 bios_grub on
 q" | parted /dev/$dev
 
@@ -36,9 +39,9 @@ sleep 10
 # Wait for the new partition to become available.
 # We format it ti ext4 and mount it
 for i in $(seq 1 5); do
-  if [ -b /dev/${dev}1 ]; then
-    mkfs.ext4 -L ROOT /dev/${dev}1
-    mount -t ext4 /dev/${dev}1 $wd/mnt
+  if [ -b /dev/${dev}2 ]; then
+    mkfs.ext4 -L ROOT /dev/${dev}2
+    mount -t ext4 /dev/${dev}2 $wd/mnt
     break
   else
     sleep ${i}
@@ -70,7 +73,7 @@ mount -o bind /dev/pts $wd/mnt/dev/pts
 grub-install --root-directory=$wd/mnt /dev/${dev}
 
 # Write an entry for the root disk to fstab
-UUID=$(blkid ${1}1 -s UUID | awk -F'UUID="|"' '{print $2}')
+UUID=$(blkid /dev/${dev}2 -s UUID | awk -F'UUID="|"' '{print $2}')
 echo -e "UUID=${UUID}\t/\text4\trw\t0\t0" > $wd/mnt/etc/fstab
 
 # Write GRUB configuration
@@ -79,7 +82,6 @@ GRUB_DEFAULT=0
 GRUB_TIMEOUT=2
 GRUB_TIMEOUT_STYLE=hidden
 GRUB_DISTRIBUTOR=Ubuntu
-GRUB_CMDLINE_LINUX_DEFAULT="net.ifnames=0"
 GRUB_CMDLINE_LINUX=""
 GRUB_DEVICE=/dev/disk/by-label/ROOT
 EOF

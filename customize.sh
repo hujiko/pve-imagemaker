@@ -50,8 +50,8 @@ debconf-set-selections <<DEBCONF
 grub-pc grub-pc/install_devices_empty boolean false
 DEBCONF
 
-# add cloudinit to later deploy this image
-apt-get --yes install cloud-init
+# add cloudinit to later deploy this image and the quemu-guest-agent
+apt-get --yes install cloud-init qemu-guest-agent
 
 # add whatever tools you want to have pre-installed on your image.
 apt-get --yes install \
@@ -71,8 +71,6 @@ apt-get --yes install \
   xfslibs-dev \
   pciutils \
   resolvconf \
-  cloud-guest-utils \
-  open-vm-tools \
   update-notifier-common \
   wget \
   openssh-server
